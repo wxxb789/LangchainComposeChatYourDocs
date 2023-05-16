@@ -237,7 +237,7 @@ async def ingest_data(tmp_file, slug, file_type, chunk_size, chunk_overlap):
     print(documents)
     docs = text_splitter.split_documents(documents)
     Qdrant.from_documents(
-        docs, ingest_data.embeddings, host=host, collection_name=slug, prefer_grpc=True
+        docs, ingest_data.embeddings, host=host, collection_name=slug, prefer_grpc=True, timeout=60
     )
     return slug
 
