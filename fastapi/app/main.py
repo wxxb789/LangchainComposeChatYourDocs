@@ -51,10 +51,28 @@ langchain.llm_cache = InMemoryCache()
 
 load_dotenv()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# use Azure Openai Api
+AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 AUTHORIZED_API_KEY = os.getenv("AUTHORIZED_API_KEY")
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_DEPLOYMENT_GPT =os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT")
+AZURE_OPENAI_DEPLOYMENT_EMBEDDING=os.getenv("AZURE_OPENAI_DEPLOYMENT_EMBEDDING")
+AZURE_OPENAI_GPT_MODEL = os.getenv("AZURE_OPENAI_GPT_MODEL")
+AZURE_OPENAI_EMBEDDING_MODEL = os.getenv("AZURE_OPENAI_EMBEDDING_MODEL")
+
+os.environ["OPENAI_API_TYPE"] = "azure"
+os.environ["OPENAI_API_BASE"] = AZURE_OPENAI_ENDPOINT
+os.environ["OPENAI_API_KEY"] = AZURE_OPENAI_API_KEY
+os.environ["OPENAI_API_VERSION"] = "2023-03-15-preview"
+
+openai.api_key = AZURE_OPENAI_API_KEY
+openai.api_type = "azure"
+openai.api_base = AZURE_OPENAI_ENDPOINT
+openai.api_version = "2023-03-15-preview"
+
+# apify
 os.environ["APIFY_API_TOKEN"] = os.getenv("APIFY_API_TOKEN")
-openai.api_key = OPENAI_API_KEY
+
 
 host = "qdrant"
 client = QdrantClient(host=host, prefer_grpc=True)
@@ -155,7 +173,12 @@ async def read_collections(token: str = Depends(get_token)):
 @app.post("/documents")
 async def create_item(item: Query, token: str = Depends(get_token)):
     qdrant = Qdrant(
-        client, item.collection, embedding_function=OpenAIEmbeddings().embed_query
+        client, item.collection, embedding_function=OpenAIEmbeddings(
+            deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
+            model= AZURE_OPENAI_EMBEDDING_MODEL,
+            api_base= AZURE_OPENAI_ENDPOINT,
+            api_type="azure",
+        ).embed_query
     )
     docs = qdrant.similarity_search_with_score(item.query)
     return docs
@@ -164,7 +187,12 @@ async def create_item(item: Query, token: str = Depends(get_token)):
 @app.post("/collections")
 async def create_item(item: Collection, token: str = Depends(get_token)):
     qdrant = Qdrant(
-        client, item.collection, embedding_function=OpenAIEmbeddings().embed_query
+        client, item.collection, embedding_function=OpenAIEmbeddings(
+            deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
+            model= AZURE_OPENAI_EMBEDDING_MODEL,
+            api_base= AZURE_OPENAI_ENDPOINT,
+            api_type="azure",
+        ).embed_query
     )
     docs = qdrant.similarity_search(item.prompt)
     llm = ChatOpenAI(temperature=item.temperature, model_name="gpt-3.5-turbo")
@@ -203,7 +231,12 @@ async def ingest_data(tmp_file, slug, file_type, chunk_size, chunk_overlap):
     documents = loader.load()
     # cache the embeddings
     if not hasattr(ingest_data, "embeddings"):
-        ingest_data.embeddings = OpenAIEmbeddings()
+        ingest_data.embeddings = OpenAIEmbeddings(
+            deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
+            model= AZURE_OPENAI_EMBEDDING_MODEL,
+            api_base= AZURE_OPENAI_ENDPOINT,
+            api_type="azure",
+        )
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
@@ -240,7 +273,12 @@ async def create_webpage(item: Webpage, token: str = Depends(get_token)):
     documents = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=250, chunk_overlap=40)
     docs = text_splitter.split_documents(documents)
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(
+        deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
+        model= AZURE_OPENAI_EMBEDDING_MODEL,
+        api_base= AZURE_OPENAI_ENDPOINT,
+        api_type="azure",
+    )
     Qdrant.from_documents(
         docs, embeddings, host=host, collection_name=collection_name, prefer_grpc=True
     )
@@ -253,7 +291,12 @@ async def create_webpages(item: Webpages, token: str = Depends(get_token)):
     documents = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=250, chunk_overlap=40)
     docs = text_splitter.split_documents(documents)
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(
+        deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
+        model= AZURE_OPENAI_EMBEDDING_MODEL,
+        api_base= AZURE_OPENAI_ENDPOINT,
+        api_type="azure",
+    )
     Qdrant.from_documents(
         docs,
         embeddings,
@@ -270,6 +313,7 @@ async def openai_query(item: GPTQuery, token: str = Depends(get_token)):
     system_intel = item.system_intel
     prompt = item.prompt
     result = openai.ChatCompletion.create(
+        deployment_id = AZURE_OPENAI_DEPLOYMENT_GPT,
         model="gpt-3.5-turbo",
         temperature=item.temperature,
         messages=[
@@ -294,7 +338,12 @@ async def stream(item: Apify, token: str = Depends(get_token)):
             },
         ),
     )
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(
+        deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
+        model= AZURE_OPENAI_EMBEDDING_MODEL,
+        api_base= AZURE_OPENAI_ENDPOINT,
+        api_type="azure",
+    )
     documents = loader.load()
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, length_function = len)
@@ -379,7 +428,12 @@ async def stream(item: GPTQuery, token: str = Depends(get_token)):
 @app.post("/collections/stream")
 async def stream(item: Collection, token: str = Depends(get_token)):
     qdrant = Qdrant(
-        client, item.collection, embedding_function=OpenAIEmbeddings().embed_query
+        client, item.collection, embedding_function=OpenAIEmbeddings(
+            deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
+            model= AZURE_OPENAI_EMBEDDING_MODEL,
+            api_base= AZURE_OPENAI_ENDPOINT,
+            api_type="azure",
+        ).embed_query
     )
     retriever = qdrant.as_retriever(search_type="similarity")
     query = item.prompt
