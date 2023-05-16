@@ -6,3 +6,6 @@ docker-pipeline.yml
 fastapi/.env
 # fastapi/app/.env
 fastapi/app/.env
+data/
+*.pyc
+fastapi/submodules/__pycache__/prompts.cpython-310.pyc

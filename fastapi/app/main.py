@@ -176,8 +176,6 @@ async def create_item(item: Query, token: str = Depends(get_token)):
         client, item.collection, embedding_function=OpenAIEmbeddings(
             deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
             model= AZURE_OPENAI_EMBEDDING_MODEL,
-            api_base= AZURE_OPENAI_ENDPOINT,
-            api_type="azure",
         ).embed_query
     )
     docs = qdrant.similarity_search_with_score(item.query)
@@ -190,8 +188,6 @@ async def create_item(item: Collection, token: str = Depends(get_token)):
         client, item.collection, embedding_function=OpenAIEmbeddings(
             deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
             model= AZURE_OPENAI_EMBEDDING_MODEL,
-            api_base= AZURE_OPENAI_ENDPOINT,
-            api_type="azure",
         ).embed_query
     )
     docs = qdrant.similarity_search(item.prompt)
@@ -234,8 +230,6 @@ async def ingest_data(tmp_file, slug, file_type, chunk_size, chunk_overlap):
         ingest_data.embeddings = OpenAIEmbeddings(
             deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
             model= AZURE_OPENAI_EMBEDDING_MODEL,
-            api_base= AZURE_OPENAI_ENDPOINT,
-            api_type="azure",
         )
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap
@@ -276,8 +270,6 @@ async def create_webpage(item: Webpage, token: str = Depends(get_token)):
     embeddings = OpenAIEmbeddings(
         deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
         model= AZURE_OPENAI_EMBEDDING_MODEL,
-        api_base= AZURE_OPENAI_ENDPOINT,
-        api_type="azure",
     )
     Qdrant.from_documents(
         docs, embeddings, host=host, collection_name=collection_name, prefer_grpc=True
@@ -294,8 +286,6 @@ async def create_webpages(item: Webpages, token: str = Depends(get_token)):
     embeddings = OpenAIEmbeddings(
         deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
         model= AZURE_OPENAI_EMBEDDING_MODEL,
-        api_base= AZURE_OPENAI_ENDPOINT,
-        api_type="azure",
     )
     Qdrant.from_documents(
         docs,
@@ -341,8 +331,6 @@ async def stream(item: Apify, token: str = Depends(get_token)):
     embeddings = OpenAIEmbeddings(
         deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
         model= AZURE_OPENAI_EMBEDDING_MODEL,
-        api_base= AZURE_OPENAI_ENDPOINT,
-        api_type="azure",
     )
     documents = loader.load()
 
@@ -431,8 +419,6 @@ async def stream(item: Collection, token: str = Depends(get_token)):
         client, item.collection, embedding_function=OpenAIEmbeddings(
             deployment= AZURE_OPENAI_DEPLOYMENT_EMBEDDING, 
             model= AZURE_OPENAI_EMBEDDING_MODEL,
-            api_base= AZURE_OPENAI_ENDPOINT,
-            api_type="azure",
         ).embed_query
     )
     retriever = qdrant.as_retriever(search_type="similarity")
