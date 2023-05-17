@@ -24,7 +24,7 @@ from langchain.document_loaders.base import Document
 from langchain.document_loaders import ApifyDatasetLoader
 from langchain.cache import InMemoryCache
 from langchain.document_loaders import WebBaseLoader
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import AzureChatOpenAI
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.document_loaders import SRTLoader
 from langchain.document_loaders import UnstructuredWordDocumentLoader
@@ -194,7 +194,15 @@ async def create_item(item: Collection, token: str = Depends(get_token)):
         ).embed_query,
     )
     docs = qdrant.similarity_search(item.prompt)
-    llm = ChatOpenAI(temperature=item.temperature, model_name="gpt-3.5-turbo")
+    llm = AzureChatOpenAI(
+        openai_api_type="azure",
+        openai_api_base=AZURE_OPENAI_ENDPOINT,
+        openai_api_version="2023-03-15-preview",
+        deployment_name=AZURE_OPENAI_DEPLOYMENT_GPT,
+        openai_api_key=AZURE_OPENAI_API_KEY,
+        temperature=item.temperature,
+        model_name="gpt-3.5-turbo",
+    )
     #  , metadata_keys=['source']
     chain = load_qa_with_sources_chain(llm, chain_type="stuff")
     result = chain(
@@ -397,13 +405,18 @@ class ChainStreamHandler(StreamingStdOutCallbackHandler):
 
 def llm_thread(g, prompt, system_intel, temperature):
     try:
-        chat = ChatOpenAI(
-            model_name="gpt-3.5-turbo",
-            verbose=True,
-            streaming=True,
-            callback_manager=CallbackManager([ChainStreamHandler(g)]),
-            temperature=temperature,
-        )
+        chat = AzureChatOpenAI(
+                openai_api_type="azure",
+                openai_api_base=AZURE_OPENAI_ENDPOINT,
+                openai_api_version="2023-03-15-preview",
+                deployment_name=AZURE_OPENAI_DEPLOYMENT_GPT,
+                openai_api_key=AZURE_OPENAI_API_KEY,
+                model_name="gpt-3.5-turbo",
+                verbose=True,
+                streaming=True,
+                callback_manager=CallbackManager([ChainStreamHandler(g)]),
+                temperature=temperature,
+            )
 
         chat([SystemMessage(content=system_intel), HumanMessage(content=prompt)])
 
