@@ -1,6 +1,10 @@
 {
-	"python.formatting.provider": "none",
+	"python.formatting.provider": "black",
 	"[python]": {
 		"editor.defaultFormatter": "ms-python.black-formatter"
-	}
+	},
+	"python.analysis.extraPaths": [
+		"./fastapi",
+		"./fastapi/venv/Lib/site-packages",
+	],
 }
