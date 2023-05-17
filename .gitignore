@@ -9,4 +9,3 @@ fastapi/.env
 fastapi/app/.env
 data/
 *.pyc
-fastapi/app/__pycache__/main.cpython-310.pyc
