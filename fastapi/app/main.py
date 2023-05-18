@@ -335,7 +335,7 @@ async def openai_query(item: GPTQuery, token: str = Depends(get_token)):
 
 
 @app.post("/apify")
-async def stream(item: Apify, token: str = Depends(get_token)):
+async def stream_apify(item: Apify, token: str = Depends(get_token)):
     loader = ApifyDatasetLoader(
         dataset_id=item.dataset,
         dataset_mapping_function=lambda dataset_item: Document(
@@ -441,7 +441,7 @@ async def stream(item: GPTQuery, token: str = Depends(get_token)):
 
 
 @app.post("/collections/stream")
-async def stream(item: Collection, token: str = Depends(get_token)):
+async def stream_collections(item: Collection, token: str = Depends(get_token)):
     qdrant = Qdrant(
         client,
         item.collection,
