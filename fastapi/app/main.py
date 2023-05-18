@@ -405,7 +405,7 @@ class ChainStreamHandler(StreamingStdOutCallbackHandler):
 
 def llm_thread(g, prompt, system_intel, temperature):
     try:
-        chat = AzureChatOpenAI(
+        chat_api = AzureChatOpenAI(
                 openai_api_type="azure",
                 openai_api_base=AZURE_OPENAI_ENDPOINT,
                 openai_api_version="2023-03-15-preview",
@@ -418,7 +418,7 @@ def llm_thread(g, prompt, system_intel, temperature):
                 temperature=temperature,
             )
 
-        chat([SystemMessage(content=system_intel), HumanMessage(content=prompt)])
+        chat_api([SystemMessage(content=system_intel), HumanMessage(content=prompt)])
 
     finally:
         g.close()
