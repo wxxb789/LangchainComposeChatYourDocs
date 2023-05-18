@@ -7,4 +7,11 @@
 		"./fastapi",
 		"./fastapi/venv/Lib/site-packages",
 	],
+	"python.autoComplete.extraPaths": [
+		"./fastapi",
+		"./fastapi/venv/Lib/site-packages",
+	],
+	"python.defaultInterpreterPath": "./fastapi/venv/Scripts/python.exe",
+	"python.linting.pylintEnabled": true,
+	"python.linting.enabled": true,
 }
