@@ -1,48 +1,48 @@
-import threading
-import queue
-import openai
-import langchain
-
-from dotenv import load_dotenv
-from pydantic import BaseModel
-from qdrant_client import QdrantClient
 import logging
-from typing import List
-import urllib3
 import os
-import tempfile
+import queue
 import sys
-import pandas as pd
+import tempfile
+import threading
 import typing as t
-from slugify import slugify
+from typing import List
+
+import langchain
+import openai
+import pandas as pd
 
 # custom
 import submodules.prompts as prompts
-from langchain.schema import HumanMessage, SystemMessage
-
-from langchain.document_loaders.base import Document
-from langchain.document_loaders import ApifyDatasetLoader
-from langchain.cache import InMemoryCache
-from langchain.document_loaders import WebBaseLoader
-from langchain.chat_models import AzureChatOpenAI
-from langchain.document_loaders.csv_loader import CSVLoader
-from langchain.document_loaders import SRTLoader
-from langchain.document_loaders import UnstructuredWordDocumentLoader
-from langchain.document_loaders import UnstructuredEPubLoader
-from langchain.document_loaders import UnstructuredPowerPointLoader
-from langchain.document_loaders import PyPDFLoader
-from langchain.vectorstores import Qdrant
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from langchain.callbacks.base import CallbackManager
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File
-from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
+import urllib3
+from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
+from langchain.cache import InMemoryCache
+from langchain.callbacks.base import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.chains.qa_with_sources import load_qa_with_sources_chain
+from langchain.chat_models import AzureChatOpenAI
+from langchain.document_loaders import (
+    ApifyDatasetLoader,
+    PyPDFLoader,
+    SRTLoader,
+    UnstructuredEPubLoader,
+    UnstructuredPowerPointLoader,
+    UnstructuredWordDocumentLoader,
+    WebBaseLoader,
+)
+from langchain.document_loaders.base import Document
+from langchain.document_loaders.csv_loader import CSVLoader
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.schema import HumanMessage, SystemMessage
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores import Qdrant
+from pydantic import BaseModel
+from qdrant_client import QdrantClient
+from slugify import slugify
 
 langchain.llm_cache = InMemoryCache()
 
@@ -406,17 +406,17 @@ class ChainStreamHandler(StreamingStdOutCallbackHandler):
 def llm_thread(g, prompt, system_intel, temperature):
     try:
         chat_api = AzureChatOpenAI(
-                openai_api_type="azure",
-                openai_api_base=AZURE_OPENAI_ENDPOINT,
-                openai_api_version="2023-03-15-preview",
-                deployment_name=AZURE_OPENAI_DEPLOYMENT_GPT,
-                openai_api_key=AZURE_OPENAI_API_KEY,
-                model_name="gpt-3.5-turbo",
-                verbose=True,
-                streaming=True,
-                callback_manager=CallbackManager([ChainStreamHandler(g)]),
-                temperature=temperature,
-            )
+            openai_api_type="azure",
+            openai_api_base=AZURE_OPENAI_ENDPOINT,
+            openai_api_version="2023-03-15-preview",
+            deployment_name=AZURE_OPENAI_DEPLOYMENT_GPT,
+            openai_api_key=AZURE_OPENAI_API_KEY,
+            model_name="gpt-3.5-turbo",
+            verbose=True,
+            streaming=True,
+            callback_manager=CallbackManager([ChainStreamHandler(g)]),
+            temperature=temperature,
+        )
 
         chat_api([SystemMessage(content=system_intel), HumanMessage(content=prompt)])
 
